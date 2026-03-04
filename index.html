@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI競馬予想ダッシュボード</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 15px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .card { background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+        .card h3 { margin: 0; font-size: 1rem; color: #777; }
+        .amount { font-size: 2rem; font-weight: bold; color: #333; margin-top: 5px; }
+        .table-container { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: center; }
+        th { background-color: #fafafa; color: #777; font-size: 0.9rem; }
+        .highlight { color: #d32f2f; font-weight: bold; font-size: 1.2rem; }
+        .message { padding: 20px; text-align: center; color: #777; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🎯 本日のAI最終決断</h2>
+    </div>
+
+    <div class="card">
+        <h3>現在の軍資金</h3>
+        <div class="amount"><span id="bankroll">---</span> 円</div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>レースID</th>
+                    <th>馬番</th>
+                    <th>馬名</th>
+                    <th>勝率</th>
+                    <th>オッズ</th>
+                    <th>推奨投資額</th>
+                </tr>
+            </thead>
+            <tbody id="bet-results"></tbody>
+        </table>
+        <div id="status-message" class="message">データを読み込んでいます...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tbody = document.getElementById('bet-results');
+            const messageBox = document.getElementById('status-message');
+            const bankrollSpan = document.getElementById('bankroll');
+
+            try {
+                // 本番設定：外部から伝票（JSON）を自動で取り寄せる
+                const response = await fetch('result.json');
+                if (!response.ok) throw new Error('本日のデータがまだ届いていません。');
+                
+                const data = await response.json();
+                bankrollSpan.textContent = data.bankroll.toLocaleString();
+
+                if (data.bets.length === 0) {
+                    messageBox.textContent = "本日は期待値の高い馬がいません。投資を見送ります（見逃し三振はOK）。";
+                    return;
+                }
+
+                messageBox.style.display = 'none';
+                data.bets.forEach(bet => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${bet.race_id}</td>
+                        <td><strong>${bet.horse_number}</strong></td>
+                        <td>${bet.horse_name}</td>
+                        <td>${(bet.win_probability * 100).toFixed(1)}%</td>
+                        <td>${bet.odds.toFixed(1)}倍</td>
+                        <td class="highlight">${bet.bet_amount.toLocaleString()}円</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                messageBox.textContent = "⚠️ " + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
