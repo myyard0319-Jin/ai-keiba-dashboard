@@ -1,13 +1,4 @@
 {
     "bankroll": 100000,
-    "bets": [
-        {
-            "race_id": 202510020812,
-            "horse_number": 2,
-            "horse_name": "フリッカージャブ",
-            "win_probability": 0.9769979516402123,
-            "odds": 12.821754330405483,
-            "bet_amount": 48700
-        }
-    ]
+    "bets": []
 }
